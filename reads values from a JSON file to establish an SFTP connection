@@ -1,0 +1,86 @@
+
+//
+Here's a Java class that reads values from a JSON file to establish an SFTP connection. 
+//It takes parameters such as SFTP host, port, username, and password from the JSON file:
+
+
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
+import org.json.JSONObject;
+import java.io.FileReader;
+
+public class SFTPConnectionFromJSON {
+
+    public static void main(String[] args) {
+        // Read JSON file and establish SFTP connection
+        establishSFTPConnection("config.json");
+    }
+
+    public static void establishSFTPConnection(String configFile) {
+        try {
+            // Read JSON file
+            FileReader reader = new FileReader(configFile);
+            JSONObject jsonObject = new JSONObject(reader);
+            reader.close();
+
+            // Extract SFTP connection parameters from JSON
+            String host = jsonObject.getString("sftp_host");
+            int port = jsonObject.getInt("sftp_port");
+            String username = jsonObject.getString("sftp_username");
+            String password = jsonObject.getString("sftp_password");
+
+            // Establish SFTP connection
+            connectSFTP(host, port, username, password);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void connectSFTP(String host, int port, String username, String password) {
+        try {
+            // Create JSch instance
+            JSch jsch = new JSch();
+
+            // Create session
+            Session session = jsch.getSession(username, host, port);
+            session.setPassword(password);
+            session.setConfig("StrictHostKeyChecking", "no");
+            session.connect();
+
+            // Open SFTP channel
+            ChannelSftp channel = (ChannelSftp) session.openChannel("sftp");
+            channel.connect();
+
+            // Disconnect from SFTP and session
+            channel.disconnect();
+            session.disconnect();
+            System.out.println("SFTP Connection successful.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Failed to connect to SFTP server.");
+        }
+    }
+}
+
+
+
+
+
+
+Make sure to have the JSON file named config.json in the same directory as your Java class. Here's an example of how your config.json file might look:
+
+json
+Copy code
+{
+  "sftp_host": "your_sftp_host",
+  "sftp_port": 22,
+  "sftp_username": "your_sftp_username",
+  "sftp_password": "your_sftp_password"
+}
+
+
+Replace "your_sftp_host", "your_sftp_username", and "your_sftp_password" with your actual SFTP server details.
+
+When you run this class, it reads the values from the JSON file, establishes an SFTP connection using the provided parameters,
+and prints a message indicating whether the connection was successful or not.
